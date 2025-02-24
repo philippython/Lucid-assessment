@@ -1,23 +1,38 @@
-from fastapi import FastAPI, Depends, HTTPException, Request
-from pydantic import BaseModel, Field
-from datetime import datetime, timedelta
-from sqlalchemy.ext.declarative import declarative_base
 import uuid
 import time
+from fastapi import HTTPException, Depends, Request
+from auth.oauth2 import get_current_user
+from dtos.post import PostDTO
+
+# In memory storage for posts & cache
+posts_db = {}
+cache = {}
 
 
-def add_post(request: Request, token: str = Depends(get_current_user)):
+# Limit payload size to 1 MB (1,048,576 bytes)
+MAX_PAYLOAD_SIZE = 1 * 1024 * 1024  # 1MB
 
+
+def add_post(request: Request):
+
+    # Enforce payload size limit
+    content_length = request.headers.get("content-length")
+    if content_length and int(content_length) > MAX_PAYLOAD_SIZE:
+        raise HTTPException(status_code=413, detail="Payload size exceeds 1MB limit")
+
+    # Parse request data
     post_data = request.json()
+
+    # Validate post data using Pydantic
     post = PostDTO(**post_data)
 
+    # Generate a unique post ID
     post_id = str(uuid.uuid4())
-    if token not in posts_db:
-        posts_db[token] = []
-    posts_db[token].append({"postID": post_id, "text": post.text, "created_at": datetime.utcnow()})
+
+    # Save the post in memory
+    posts_db[post_id] = post.dict()
 
     return {"postID": post_id, "message": "Post saved successfully!"}
-
 
 def get_posts(token: str = Depends(get_current_user)):
     current_time = time.time()
