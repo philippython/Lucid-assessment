@@ -2,7 +2,8 @@ import uuid
 import time
 from fastapi import HTTPException, Depends, Request
 from auth.oauth2 import get_current_user
-from dtos.post import PostDTO
+from schemas.post import PostSchema
+from datetime import datetime
 
 # In memory storage for posts & cache
 posts_db = {}
@@ -13,24 +14,22 @@ cache = {}
 MAX_PAYLOAD_SIZE = 1 * 1024 * 1024  # 1MB
 
 
-def add_post(request: Request):
+def add_post(request: Request, post: PostSchema, token: str = Depends(get_current_user)):
 
     # Enforce payload size limit
     content_length = request.headers.get("content-length")
     if content_length and int(content_length) > MAX_PAYLOAD_SIZE:
         raise HTTPException(status_code=413, detail="Payload size exceeds 1MB limit")
 
-    # Parse request data
-    post_data = request.json()
-
-    # Validate post data using Pydantic
-    post = PostDTO(**post_data)
-
     # Generate a unique post ID
     post_id = str(uuid.uuid4())
 
     # Save the post in memory
     posts_db[post_id] = post.dict()
+    if token not in posts_db:
+        posts_db[token] = []
+    posts_db[token].append({"postID": post_id, "text": post.text, "created_at": datetime.utcnow()})
+
 
     return {"postID": post_id, "message": "Post saved successfully!"}
 

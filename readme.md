@@ -21,7 +21,7 @@ This is a simple FastAPI authentication API that provides user registration (sig
 
 1. Clone the repository:
    ```sh
-   git clone https://github.com/yourusername/fastapi-auth-app.git
+   git clone https://github.com/philippython/Lucid-assessment.git
    cd fastapi-auth-app
    ```
 2. Create and activate a virtual environment:

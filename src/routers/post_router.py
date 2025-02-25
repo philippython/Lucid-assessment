@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends, Request
 from auth.oauth2 import get_current_user
 from utils.hash import *
 from repository import post
+from schemas.post import PostSchema
 
 router = APIRouter(
     prefix="/post",
@@ -10,12 +11,12 @@ router = APIRouter(
 
 
 @router.post("/posts/")
-def create_post(request: Request, token: str = Depends(get_current_user)):
+def create_post(request: Request, post_schema: PostSchema, token: str = Depends(get_current_user)):
     """
     Adds a new post after validating payload size (≤1MB).
     Saves in memory and returns postID.
     """
-    return post.add_post(request)
+    return post.add_post(request, post_schema, token)
 
 @router.get("/posts/")
 def get_posts(token: str = Depends(get_current_user)):

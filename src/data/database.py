@@ -1,5 +1,9 @@
 from sqlmodel import Session, SQLModel, create_engine
-from data.models.user import User
+from typing import Dict
+from schemas.user_in_db import UserInDB
+
+# Simulated in-memory database (should be replaced with a real database)
+users_db: Dict[str, UserInDB] = {}
 
 sqlite_file_name = "lucid.db"
 sqlite_url = f"sqlite:///{sqlite_file_name}"

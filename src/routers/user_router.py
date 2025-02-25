@@ -12,8 +12,6 @@ router = APIRouter(
     tags=["Users"]
 )
 
-#  In-Memory User Store
-users_db = {}
 
 @router.post("/signup/", response_model=Token)
 def signup(user: UserSchema):

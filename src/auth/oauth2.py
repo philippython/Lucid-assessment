@@ -2,9 +2,8 @@ import jwt
 from datetime import datetime, timedelta
 from fastapi import HTTPException, Depends, status
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
+from data.database import users_db  # Import shared storage
 
-# In-Memory User Store
-users_db = {}
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login")
 
@@ -24,9 +23,10 @@ def get_current_user(token: str = Depends(oauth2_scheme)):
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         email = payload.get("sub")
+        print(users_db.get(email))
         if email is None or email not in users_db:
             raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token")
-        return users_db[email]
+        return users_db.get(email).id
     except jwt.ExpiredSignatureError:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Token expired")
     except jwt.InvalidTokenError:
